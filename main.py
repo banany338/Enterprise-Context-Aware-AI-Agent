@@ -1,6 +1,7 @@
 import io
 import PyPDF2
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from vector_store import add_to_vector_store
 
 app = FastAPI(title="Enterprise Context-Aware AI Agent API")
 
@@ -22,9 +23,12 @@ async def upload_pdf(file: UploadFile = File(...)):
         for page in pdf_reader.pages:
             extracted_text += page.extract_text() or ""
             
+        num_chunks = add_to_vector_store(extracted_text, file.filename)
+            
         return {
             "filename": file.filename,
-            "text_preview": extracted_text[:500]
+            "text_preview": extracted_text[:500],
+            "chunks_created": num_chunks
         }
         
     except Exception as e:
