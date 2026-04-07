@@ -1,9 +1,14 @@
 import io
 import PyPDF2
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from vector_store import add_to_vector_store
+from pydantic import BaseModel
+from vector_store import add_to_vector_store, query_vector_store
+from llm_service import generate_answer
 
 app = FastAPI(title="Enterprise Context-Aware AI Agent API")
+
+class ChatRequest(BaseModel):
+    question: str
 
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
@@ -33,3 +38,19 @@ async def upload_pdf(file: UploadFile = File(...)):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to process PDF: {str(e)}")
+
+@app.post("/chat")
+async def chat(request: ChatRequest):
+    """
+    Receives a user question, searches for relevant context in ChromaDB,
+    and asks the LLM to generate a response based only on that context.
+    """
+    try:
+        context = query_vector_store(request.question)
+        
+        answer = generate_answer(request.question, context)
+        
+        return {"answer": answer}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate answer: {str(e)}")

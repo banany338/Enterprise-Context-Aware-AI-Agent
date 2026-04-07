@@ -1,7 +1,6 @@
 import os
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 
 
@@ -10,12 +9,9 @@ COLLECTION_NAME = "company_docs"
 
 def get_embeddings():
     """
-    Returns the appropriate embedding model based on available environment variables.
+    Returns embedding model.
     """
-    if os.getenv("OPENAI_API_KEY"):
-        return OpenAIEmbeddings()
-    else:
-        return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 def add_to_vector_store(text: str, filename: str) -> int:
     """
@@ -46,3 +42,20 @@ def add_to_vector_store(text: str, filename: str) -> int:
     )
     
     return len(chunks)
+
+def query_vector_store(query: str, n_results: int = 3) -> str:
+    """
+    Searches the ChromaDB collection for chunks relevant to the query and returns them combined.
+    """
+    embeddings = get_embeddings()
+    
+    vector_store = Chroma(
+        collection_name=COLLECTION_NAME,
+        embedding_function=embeddings,
+        persist_directory=CHROMA_DB_DIR
+    )
+    
+    results = vector_store.similarity_search(query, k=n_results)
+    
+    context = "\n\n---\n\n".join([doc.page_content for doc in results])
+    return context
