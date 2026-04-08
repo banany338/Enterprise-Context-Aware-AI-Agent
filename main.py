@@ -1,11 +1,20 @@
 import io
 import PyPDF2
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from vector_store import add_to_vector_store, query_vector_store
 from llm_service import generate_answer
 
 app = FastAPI(title="Enterprise Context-Aware AI Agent API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production, replace with frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class ChatRequest(BaseModel):
     question: str
