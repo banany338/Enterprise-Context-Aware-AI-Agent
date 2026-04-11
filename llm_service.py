@@ -11,7 +11,7 @@ def generate_answer(question: str, context: str) -> str:
     Generates an answer using an LLM, strictly bound by the provided context.
     """
     llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0, groq_api_key=os.getenv("GROQ_API_KEY"))
-    #What is the main challenge in DNA analysis mentioned in the document?"
+    #What is the main challenge in DNA analysis mentioned in the document?
     
     system_prompt = (
         "You are a helpful internal company assistant. "
